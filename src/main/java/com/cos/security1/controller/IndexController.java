@@ -1,12 +1,19 @@
 package com.cos.security1.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cos.security1.config.auth.PrincipalDetails;
 import com.cos.security1.model.User;
 import com.cos.security1.repository.UserRepository;
 
@@ -18,6 +25,29 @@ public class IndexController {
 	
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	
+	@GetMapping("/test/login")
+	public @ResponseBody String testLogin(Authentication authentication
+			,@AuthenticationPrincipal UserDetails userDetails
+			,@AuthenticationPrincipal PrincipalDetails userDetails2) { //DI 의존성 주입 (@AuthenticationPrincipal를 이용해 UserDetails객체 접근가능) 
+		//@AuthenticationPrincipal를 통해서 세션정보에 접근할 수 있음. 그ㅐ서 UserDetails에 있는 객체의 정보를 get해올 수 있음
+		System.out.println("/test/login=====================");
+		PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+		System.out.println("User : "+ principalDetails.getUser());
+		
+		System.out.println("userDetails : "+userDetails.getUsername());
+		System.out.println("userDetails2 : "+userDetails2.getUser()); //PrincipalDetails타입이 UserDetails타입을 상속 받았으므로, 다형성으로 PrincipalDetails로 받을 수 있음 
+		return "세션정보 확인하기";
+	}
+	
+	@GetMapping("/test/oauth/login")
+	public @ResponseBody String testOAuthLogin(Authentication authentication) { 
+		System.out.println("/test/oauth/login=====================");
+		OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+		System.out.println("User : "+ oAuth2User.getAttributes());
+		
+		return "OAuth 세션정보 확인하기";
+	}
 	
 	@GetMapping({"","/"})
 	public String index() {
@@ -69,4 +99,17 @@ public class IndexController {
 	public @ResponseBody String joinProc() {
 		return "회원가입 완료됨";
 	}
+	
+	@Secured("ROLE_ADMIN") //권한을 하나만 걸고 싶을때
+	@GetMapping("/info")
+	public @ResponseBody String info() {
+		return "개인정보";
+	}
+	
+	@PreAuthorize("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')") //권한을 1개 이상 걸고 싶을때
+	@GetMapping("/data")
+	public @ResponseBody String data() {
+		return "데이터정보";
+	}
+	
 }
