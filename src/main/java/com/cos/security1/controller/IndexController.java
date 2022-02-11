@@ -26,25 +26,28 @@ public class IndexController {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	
-	@GetMapping("/test/login")
+	@GetMapping("/test/login") //일반적인 로그인 테스트  - UserDetails
 	public @ResponseBody String testLogin(Authentication authentication
-			,@AuthenticationPrincipal UserDetails userDetails
-			,@AuthenticationPrincipal PrincipalDetails userDetails2) { //DI 의존성 주입 (@AuthenticationPrincipal를 이용해 UserDetails객체 접근가능) 
+			,@AuthenticationPrincipal UserDetails userDetails) {
+//			,@AuthenticationPrincipal PrincipalDetails userDetails2) { //DI 의존성 주입 (@AuthenticationPrincipal를 이용해 UserDetails객체 접근가능) 
 		//@AuthenticationPrincipal를 통해서 세션정보에 접근할 수 있음. 그ㅐ서 UserDetails에 있는 객체의 정보를 get해올 수 있음
 		System.out.println("/test/login=====================");
 		PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
 		System.out.println("User : "+ principalDetails.getUser());
 		
 		System.out.println("userDetails : "+userDetails.getUsername());
-		System.out.println("userDetails2 : "+userDetails2.getUser()); //PrincipalDetails타입이 UserDetails타입을 상속 받았으므로, 다형성으로 PrincipalDetails로 받을 수 있음 
+//		System.out.println("userDetails2 : "+userDetails2.getUser()); //PrincipalDetails타입이 UserDetails타입을 상속 받았으므로, 다형성으로 PrincipalDetails로 받을 수 있음 
 		return "세션정보 확인하기";
 	}
 	
-	@GetMapping("/test/oauth/login")
-	public @ResponseBody String testOAuthLogin(Authentication authentication) { 
+	@GetMapping("/test/oauth/login") //구글로그인- OAuth로그인
+	public @ResponseBody String testOAuthLogin(
+			Authentication authentication ,
+			@AuthenticationPrincipal OAuth2User oAuth) { 
 		System.out.println("/test/oauth/login=====================");
 		OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 		System.out.println("User : "+ oAuth2User.getAttributes());
+		System.out.println("oAuth2User : "+oAuth.getAttributes());
 		
 		return "OAuth 세션정보 확인하기";
 	}
@@ -57,8 +60,12 @@ public class IndexController {
 		return "index"; // src/main/resources/index.mustache로 잡히게 될거임 이걸 config에서 설정을 바꾸겠음
 	}
 	
+	//OAuth2.0로그인과 일반 로그인 둘 다 가능
 	@GetMapping("/user")
-	public @ResponseBody String user() {
+	public @ResponseBody String user(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+		
+		System.out.println("principalDetails : "+principalDetails.getUser());
+		
 		return "user";
 	}
 	

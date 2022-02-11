@@ -2,9 +2,11 @@ package com.cos.security1.config.auth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.cos.security1.model.User;
 
@@ -24,12 +26,20 @@ import lombok.Data;
  */
 
 @Data
-public class PrincipalDetails implements UserDetails{
+public class PrincipalDetails implements UserDetails, OAuth2User{
 	
 	private User user; //컴포지션
+	private Map<String, Object> attributes;
 	
+	//일반 로그인할 때 사용하는 생성자
 	public PrincipalDetails(User user) {
 		this.user = user;
+	}
+	
+	//OAuth 로그인을 할 때 사용하는 생성자
+	public PrincipalDetails(User user,Map<String, Object> attributes) {
+		this.user = user;
+		this.attributes = attributes;
 	}
 	
 	//해당 User의 권한을 리턴하는 곳
@@ -77,5 +87,17 @@ public class PrincipalDetails implements UserDetails{
 		//현재시간 - 로긴시간 => 1년을 초과하면 false
 		
 		return true;
+	}
+
+	@Override
+	public Map<String, Object> getAttributes() {
+		// TODO Auto-generated method stub
+		return attributes;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
